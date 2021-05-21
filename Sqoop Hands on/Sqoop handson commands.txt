@@ -1,0 +1,67 @@
+Sqoop Hands On
+
+Creating Table
+CREATE TABLE arunava.customer (cust_id int, name varchar(50), age int, country varchar(100));
+
+Inserting values
+INSERT INTO arunava.customer VALUES(101,'John',25,'US');
+INSERT INTO arunava.customer VALUES(102,'Jack',35,'US');
+INSERT INTO arunava.customer VALUES(103,'Peter',28,'UK');
+INSERT INTO arunava.customer VALUES(104,'Katie',30,'US');
+INSERT INTO arunava.customer VALUES(105,'Daniel',22,'UK');
+
+checking if values are inserted or not
+SELECT * FROM arunava.customer;
+
+Importing RDBMS data to HDFS
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava \
+--username karthick1808 \
+--table customer \
+--target-dir /etl/arunava/ -P -m 1
+
+Checking if data imported to HDFS
+
+hdfs dfs -cat /etl/arunava/part-m*
+
+Import only those records of customer table where country is‘US’
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava --username karthick1808 --table customer --where "country='US'" --target-dir /etl/arunavaUS/ -P -m 1
+
+Checking if data imported to HDFS
+
+hdfs dfs -cat /etl/arunavaUS/part-m*
+
+Import only id, name and age from customer table belonging to UK and load to
+/etl/input/selected/customer path in HDFS
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava --username karthick1808 --query "SELECT cust_id,name,age FROM arunava.customer where \$CONDITIONS AND country='UK'" --split-by cust_id --target-dir /etl/arunavaUK/ -P -m 1
+
+explicit mappers
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava --username karthick1808 --table customer --split-by cust_id --target-dir /etl/arunava1/ -P -m 5
+
+avro file
+
+ sqoop-import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava --username karthick1808 --table customer --target-dir /etl/arunava2/ --as-avrodatafile -P -m 1
+
+hive import
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava --username karthick1808 --table customer --hive-import -P -m 1
+
+incremental append
+
+sqoop-import --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava \
+--username karthick1808 \
+--table customer \
+--incremental append \
+--check-column cust_id \
+--last-value 105 \
+--target-dir /etl/arunava/ -P -m 1
+
+hdfs to rdbms
+
+sqoop-export --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.amazonaws.com/arunava \
+--username karthick1808 \
+--table customer_new \
+--export-dir /etl/arunava/part* -P -m 1
