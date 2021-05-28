@@ -65,3 +65,5 @@ sqoop-export --connect jdbc:mysql://karthick1808.cbblc4q2jmpm.ap-south-1.rds.ama
 --username karthick1808 \
 --table customer_new \
 --export-dir /etl/arunava/part* -P -m 1
+
+sqoop-export --connect jdbc:mysql://localhost/mydb --username root --table product --export-dir /samples/product.txt --batch --input-lines-terminated-by '\n' --input-fields-terminated-by ',' -m 1 -P
